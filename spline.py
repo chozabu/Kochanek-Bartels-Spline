@@ -1,4 +1,7 @@
 
+#original author - Ian Mallett
+#graciously allowed the use of this code ( - Kochanek-Bartels Spline - 1.0.0 - May 2008) under the GPL
+
 class Spline():
 
 	def __init__(self):
