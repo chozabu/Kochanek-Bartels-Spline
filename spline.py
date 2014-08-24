@@ -124,7 +124,7 @@ def DrawCurve():
             Lines2.append((int(round(p[0])),int(round(p[1]))))
 
         #pygame.draw.aalines(Surface,(255,255,255),False,Lines2)
-        finalLines.append(Lines2)
+        finalLines.extend(Lines2)
 
         i += 1
     return finalLines
