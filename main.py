@@ -9,7 +9,7 @@ import spline
 
 if sys.platform == 'win32' or sys.platform == 'win64':
 
-    os.environ['SDL_VIDEO_CENTERED'] = '1'
+	os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 pygame.init()
 
@@ -26,66 +26,72 @@ Surface = pygame.display.set_mode(Screen)
 myspline = spline.Spline()
 
 
-for i in range(5):
-            myspline.ControlPoints.append((random.random()*800, random.random()*600))
+for i in range(3):
+			myspline.ControlPoints.append((random.random()*800, random.random()*600))
 
 
 
 pressing = False
+selected = None
 
 def GetInput():
 
-    global pressing
+	global pressing, selected
 
-    key = pygame.key.get_pressed()
+	key = pygame.key.get_pressed()
 
-    mpress = pygame.mouse.get_pressed()
+	mpress = pygame.mouse.get_pressed()
 
-    mpos = pygame.mouse.get_pos()
+	mpos = pygame.mouse.get_pos()
 
-    for event in pygame.event.get():
+	for event in pygame.event.get():
 
-        if event.type == QUIT or key[K_ESCAPE]:
+		if event.type == QUIT or key[K_ESCAPE]:
 
-            pygame.quit(); sys.exit()
+			pygame.quit(); sys.exit()
 
-    if mpress[0]:
+	if mpress[0]:
 
-        if not pressing:
+		if not pressing:
+			
+			selected = None
+			pressing = True
+			nearest, dist = myspline.nearestPoint((mpos[0],mpos[1]))
+			if dist < 100:
+				selected = nearest
 
-            pressing = True
+			myspline.ControlPoints.append((mpos[0],mpos[1]))
+		
 
-            myspline.ControlPoints.append((mpos[0],mpos[1]))
+	else:
 
-    else:
-
-        pressing = False
+		pressing = False
 
 
 
 def Draw():
 
-    Surface.fill((0,0,0))
+	Surface.fill((0,0,0))
 
-    for cp in myspline.ControlPoints:
+	for cp in myspline.ControlPoints:
 
-        pygame.draw.circle(Surface,(255,0,0),(int(cp[0]),int(cp[1])),2)
+		pygame.draw.circle(Surface,(255,0,0),(int(cp[0]),int(cp[1])),2)
 
-    if len(myspline.ControlPoints) >= 4:
+	if len(myspline.ControlPoints) >= 3:
 
-        finalpoints = myspline.DrawCurve()
-        
-        #for pset in finalpoints:
-        pygame.draw.aalines(Surface,(255,255,255),False,finalpoints)
+		finalpoints = myspline.DrawCurve()
+		
+		#for pset in finalpoints:
+		pygame.draw.aalines(Surface,(255,255,255),False,finalpoints)
 
-    pygame.display.flip()
+	pygame.display.flip()
 
 def main():
 
-    while True:
+	while True:
 
-        GetInput()
+		GetInput()
 
-        Draw()
+		Draw()
 
 if __name__ == '__main__': main()

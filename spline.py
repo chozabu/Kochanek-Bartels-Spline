@@ -7,7 +7,19 @@ class Spline():
 		self.t = 0
 		self.ControlPoints = []
 		
-
+	def nearestPoint(self, pos):
+		shortest = 999999
+		nearest = None
+		ControlPoints = self.ControlPoints
+		for cp in ControlPoints:
+			xd = cp[0]-pos[0]
+			yd = cp[1]-pos[1]
+			td = xd*xd+yd*yd
+			if td<shortest:
+				shortest = td
+				nearest = cp
+		return nearest, shortest
+			
 
 	def DrawCurve(self):
 
@@ -18,7 +30,7 @@ class Spline():
 		
 		#make into a closed loo[
 		ControlPoints=[ControlPoints[-1]]+ControlPoints+ControlPoints[0:2]
-		print ControlPoints
+		#print ControlPoints
 		tans = []
 
 		tand = []
