@@ -2,23 +2,6 @@ import pygame
 
 from pygame.locals import *
 
-import sys, os
-
-if sys.platform == 'win32' or sys.platform == 'win64':
-
-    os.environ['SDL_VIDEO_CENTERED'] = '1'
-
-pygame.init()
-
-
-
-Screen = (800,600)
-
-icon = pygame.Surface((1,1)); icon.set_alpha(0); pygame.display.set_icon(icon)
-
-pygame.display.set_caption("Kochanek-Bartels Spline - Ian Mallett - 1.0.0 - May 2008")
-
-Surface = pygame.display.set_mode(Screen)
 
 
 
@@ -41,37 +24,6 @@ class ControlPoint:
     def __init__(self,pos):
 
         self.pos = pos
-
-pressing = False
-
-def GetInput():
-
-    global pressing
-
-    key = pygame.key.get_pressed()
-
-    mpress = pygame.mouse.get_pressed()
-
-    mpos = pygame.mouse.get_pos()
-
-    for event in pygame.event.get():
-
-        if event.type == QUIT or key[K_ESCAPE]:
-
-            pygame.quit(); sys.exit()
-
-    if mpress[0]:
-
-        if not pressing:
-
-            pressing = True
-
-            ControlPoints.append(ControlPoint((mpos[0],Screen[1]-mpos[1])))
-
-    else:
-
-        pressing = False
-
 
 
 def DrawCurve():
@@ -138,9 +90,11 @@ def DrawCurve():
 
     #render spline (Your camera part)
 
-    t_inc = 0.05
+    t_inc = 0.1
 
     i = 1
+    
+    finalLines = []
 
     while i < len(ControlPoints)-2:
 
@@ -184,32 +138,10 @@ def DrawCurve():
 
         for p in Lines:
 
-            Lines2.append((int(round(p[0])),Screen[1]-int(round(p[1]))))
+            Lines2.append((int(round(p[0])),int(round(p[1]))))
 
-        pygame.draw.aalines(Surface,(255,255,255),False,Lines2)
+        #pygame.draw.aalines(Surface,(255,255,255),False,Lines2)
+        finalLines.append(Lines2)
 
         i += 1
-
-def Draw():
-
-    Surface.fill((0,0,0))
-
-    for cp in ControlPoints:
-
-        pygame.draw.circle(Surface,(255,0,0),(cp.pos[0],Screen[1]-cp.pos[1]),2)
-
-    if len(ControlPoints) >= 4:
-
-        DrawCurve()
-
-    pygame.display.flip()
-
-def main():
-
-    while True:
-
-        GetInput()
-
-        Draw()
-
-if __name__ == '__main__': main()
+    return finalLines
