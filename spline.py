@@ -15,6 +15,10 @@ class Spline():
 		b=self.b
 		t=self.t
 		ControlPoints = self.ControlPoints
+		
+		#make into a closed loo[
+		ControlPoints=[ControlPoints[-1]]+ControlPoints+ControlPoints[0:2]
+		print ControlPoints
 		tans = []
 
 		tand = []
