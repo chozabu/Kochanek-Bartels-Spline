@@ -1,14 +1,3 @@
-import pygame
-
-from pygame.locals import *
-
-
-
-
-Resolution = 100
-
-
-
 c = 0
 
 b = 0
@@ -18,12 +7,6 @@ t = 0
 
 
 ControlPoints = []
-
-class ControlPoint:
-
-    def __init__(self,pos):
-
-        self.pos = pos
 
 
 def DrawCurve():
@@ -64,17 +47,17 @@ def DrawCurve():
 
                 
 
-        x1 = pb.pos[0] - pa.pos[0]
+        x1 = pb[0] - pa[0]
 
-        y1 = pb.pos[1] - pa.pos[1]
+        y1 = pb[1] - pa[1]
 
-        #z1 = pb.pos[2] - pa.pos[2]
+        #z1 = pb[2] - pa[2]
 
-        x2 = pc.pos[0] - pb.pos[0]
+        x2 = pc[0] - pb[0]
 
-        y2 = pc.pos[1] - pb.pos[1]
+        y2 = pc[1] - pb[1]
 
-        #z2 = pc.pos[2] - pb.pos[2]
+        #z2 = pc[2] - pb[2]
 
                 
 
@@ -108,7 +91,7 @@ def DrawCurve():
 
         #draw curve from p0 to p1
 
-        Lines = [(p0.pos[0],p0.pos[1])]
+        Lines = [(p0[0],p0[1])]
 
         t_iter = t_inc
 
@@ -122,17 +105,17 @@ def DrawCurve():
 
             h11 = ( 1*(t_iter**3)) - ( 1*(t_iter**2))
 
-            px = h00*p0.pos[0] + h10*m0[0] + h01*p1.pos[0] + h11*m1[0]
+            px = h00*p0[0] + h10*m0[0] + h01*p1[0] + h11*m1[0]
 
-            py = h00*p0.pos[1] + h10*m0[1] + h01*p1.pos[1] + h11*m1[1]
+            py = h00*p0[1] + h10*m0[1] + h01*p1[1] + h11*m1[1]
 
-            #pz = h00*p0.pos[2] + h10*m0[2] + h01*p1.pos[2] + h11*m1[2]
+            #pz = h00*p0[2] + h10*m0[2] + h01*p1[2] + h11*m1[2]
 
             Lines.append((px,py))
 
             t_iter += t_inc
 
-        Lines.append((p1.pos[0],p1.pos[1]))
+        Lines.append((p1[0],p1[1]))
 
         Lines2 = []
 
