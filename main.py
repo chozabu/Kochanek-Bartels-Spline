@@ -23,11 +23,11 @@ pygame.display.set_caption("Kochanek-Bartels Spline - Ian Mallett - 1.0.0 - May 
 
 Surface = pygame.display.set_mode(Screen)
 
-
+myspline = spline.Spline()
 
 
 for i in range(5):
-            spline.ControlPoints.append((random.random()*800, random.random()*600))
+            myspline.ControlPoints.append((random.random()*800, random.random()*600))
 
 
 
@@ -55,7 +55,7 @@ def GetInput():
 
             pressing = True
 
-            spline.ControlPoints.append((mpos[0],mpos[1]))
+            myspline.ControlPoints.append((mpos[0],mpos[1]))
 
     else:
 
@@ -67,13 +67,13 @@ def Draw():
 
     Surface.fill((0,0,0))
 
-    for cp in spline.ControlPoints:
+    for cp in myspline.ControlPoints:
 
         pygame.draw.circle(Surface,(255,0,0),(int(cp[0]),int(cp[1])),2)
 
-    if len(spline.ControlPoints) >= 4:
+    if len(myspline.ControlPoints) >= 4:
 
-        finalpoints = spline.DrawCurve()
+        finalpoints = myspline.DrawCurve()
         
         #for pset in finalpoints:
         pygame.draw.aalines(Surface,(255,255,255),False,finalpoints)

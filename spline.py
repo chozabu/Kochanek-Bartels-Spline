@@ -1,130 +1,132 @@
-c = 0
 
-b = 0
+class Spline():
 
-t = 0
+	def __init__(self):
+		self.c = 0
+		self.b = 0
+		self.t = 0
+		self.ControlPoints = []
+		
 
 
+	def DrawCurve(self):
 
-ControlPoints = []
+		c=self.c
+		b=self.b
+		t=self.t
+		ControlPoints = self.ControlPoints
+		tans = []
 
+		tand = []
 
-def DrawCurve():
+		for x in xrange(len(ControlPoints)-2):
 
-    global t,b,c
+			tans.append([])
 
-    tans = []
+			tand.append([])
 
-    tand = []
 
-    for x in xrange(len(ControlPoints)-2):
 
-        tans.append([])
+		cona = (1-t)*(1+b)*(1-c)*0.5
 
-        tand.append([])
+		conb = (1-t)*(1-b)*(1+c)*0.5
 
+		conc = (1-t)*(1+b)*(1+c)*0.5
 
+		cond = (1-t)*(1-b)*(1-c)*0.5
 
-    cona = (1-t)*(1+b)*(1-c)*0.5
 
-    conb = (1-t)*(1-b)*(1+c)*0.5
 
-    conc = (1-t)*(1+b)*(1+c)*0.5
+		i = 1
 
-    cond = (1-t)*(1-b)*(1-c)*0.5
+		while i < len(ControlPoints)-1:
 
+			pa = ControlPoints[i-1]
 
+			pb = ControlPoints[i]
 
-    i = 1
+			pc = ControlPoints[i+1]
 
-    while i < len(ControlPoints)-1:
+					
 
-        pa = ControlPoints[i-1]
+			x1 = pb[0] - pa[0]
 
-        pb = ControlPoints[i]
+			y1 = pb[1] - pa[1]
 
-        pc = ControlPoints[i+1]
+			#z1 = pb[2] - pa[2]
 
-                
+			x2 = pc[0] - pb[0]
 
-        x1 = pb[0] - pa[0]
+			y2 = pc[1] - pb[1]
 
-        y1 = pb[1] - pa[1]
+			#z2 = pc[2] - pb[2]
 
-        #z1 = pb[2] - pa[2]
+					
 
-        x2 = pc[0] - pb[0]
+			tans[i-1] = (cona*x1+conb*x2, cona*y1+conb*y2) #cona*z1+conb*z2
 
-        y2 = pc[1] - pb[1]
+			tand[i-1] = (conc*x1+cond*x2, conc*y1+cond*y2) #conc*z1+cond*z2
 
-        #z2 = pc[2] - pb[2]
+			
 
-                
+			i += 1
 
-        tans[i-1] = (cona*x1+conb*x2, cona*y1+conb*y2) #cona*z1+conb*z2
 
-        tand[i-1] = (conc*x1+cond*x2, conc*y1+cond*y2) #conc*z1+cond*z2
 
-        
+		#render spline (Your camera part)
 
-        i += 1
+		t_inc = 0.1
 
+		i = 1
+		
+		finalLines = []
 
+		while i < len(ControlPoints)-2:
 
-    #render spline (Your camera part)
+			p0 = ControlPoints[i]
 
-    t_inc = 0.1
+			p1 = ControlPoints[i+1]
 
-    i = 1
-    
-    finalLines = []
+			m0 = tand[i-1]
 
-    while i < len(ControlPoints)-2:
+			m1 = tans[i]
 
-        p0 = ControlPoints[i]
+			#draw curve from p0 to p1
 
-        p1 = ControlPoints[i+1]
+			Lines = [(p0[0],p0[1])]
 
-        m0 = tand[i-1]
+			t_iter = t_inc
 
-        m1 = tans[i]
+			while t_iter < 1.0:
 
-        #draw curve from p0 to p1
+				h00 = ( 2*(t_iter**3)) - ( 3*(t_iter**2)) + 1
 
-        Lines = [(p0[0],p0[1])]
+				h10 = ( 1*(t_iter**3)) - ( 2*(t_iter**2)) + t_iter
 
-        t_iter = t_inc
+				h01 = (-2*(t_iter**3)) + ( 3*(t_iter**2))
 
-        while t_iter < 1.0:
+				h11 = ( 1*(t_iter**3)) - ( 1*(t_iter**2))
 
-            h00 = ( 2*(t_iter**3)) - ( 3*(t_iter**2)) + 1
+				px = h00*p0[0] + h10*m0[0] + h01*p1[0] + h11*m1[0]
 
-            h10 = ( 1*(t_iter**3)) - ( 2*(t_iter**2)) + t_iter
+				py = h00*p0[1] + h10*m0[1] + h01*p1[1] + h11*m1[1]
 
-            h01 = (-2*(t_iter**3)) + ( 3*(t_iter**2))
+				#pz = h00*p0[2] + h10*m0[2] + h01*p1[2] + h11*m1[2]
 
-            h11 = ( 1*(t_iter**3)) - ( 1*(t_iter**2))
+				Lines.append((px,py))
 
-            px = h00*p0[0] + h10*m0[0] + h01*p1[0] + h11*m1[0]
+				t_iter += t_inc
 
-            py = h00*p0[1] + h10*m0[1] + h01*p1[1] + h11*m1[1]
+			Lines.append((p1[0],p1[1]))
 
-            #pz = h00*p0[2] + h10*m0[2] + h01*p1[2] + h11*m1[2]
+			Lines2 = []
 
-            Lines.append((px,py))
+			for p in Lines:
 
-            t_iter += t_inc
+				Lines2.append((int(round(p[0])),int(round(p[1]))))
 
-        Lines.append((p1[0],p1[1]))
+			#pygame.draw.aalines(Surface,(255,255,255),False,Lines2)
+			finalLines.extend(Lines2)
 
-        Lines2 = []
-
-        for p in Lines:
-
-            Lines2.append((int(round(p[0])),int(round(p[1]))))
-
-        #pygame.draw.aalines(Surface,(255,255,255),False,Lines2)
-        finalLines.extend(Lines2)
-
-        i += 1
-    return finalLines
+			i += 1
+		return finalLines
