@@ -9,11 +9,25 @@ class Spline():
 		self.b = 0
 		self.t = 0
 		self.ControlPoints = []
+		self.subpoints = []
 		
 	def nearestPoint(self, pos):
 		shortest = 999999
 		nearest = None
 		ControlPoints = self.ControlPoints
+		for cp in ControlPoints:
+			xd = cp[0]-pos[0]
+			yd = cp[1]-pos[1]
+			td = xd*xd+yd*yd
+			if td<shortest:
+				shortest = td
+				nearest = cp
+		return nearest, shortest
+	
+	def nearestSubPoint(self, pos):
+		shortest = 999999
+		nearest = None
+		ControlPoints = self.subpoints
 		for cp in ControlPoints:
 			xd = cp[0]-pos[0]
 			yd = cp[1]-pos[1]
@@ -94,7 +108,7 @@ class Spline():
 
 		#render spline (Your camera part)
 
-		t_inc = 0.1
+		t_inc = 0.2
 
 		i = 1
 		
@@ -148,4 +162,5 @@ class Spline():
 			finalLines.extend(Lines2)
 
 			i += 1
+		self.subpoints = finalLines
 		return finalLines
