@@ -52,7 +52,7 @@ class Spline():
 
 		tand = []
 
-		for x in xrange(len(ControlPoints)-2):
+		for x in range(len(ControlPoints)-2):
 
 			tans.append([])
 

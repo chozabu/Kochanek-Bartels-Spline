@@ -58,7 +58,7 @@ def GetInput():
 			pressing = True
 			nearest, dist = myspline.nearestPoint((mpos[0],mpos[1]))
 			nindex = myspline.ControlPoints.index(nearest)
-			print "\n"
+			print("\n")
 			#print len( myspline.ControlPoints), len( myspline.subpoints)
 			if dist < 100:
 				selected = nindex
@@ -66,9 +66,9 @@ def GetInput():
 				snearest, sdist = myspline.nearestSubPoint((mpos[0],mpos[1]))
 				snindex = myspline.subpoints.index(snearest)-nindex
 				nsindex = snindex/5.0
-				print nsindex, nindex
+				print(nsindex, nindex)
 				test =  nsindex- nindex
-				print test
+				print(test)
 				if test>=0 and test < 2:
 					nindex+=1
 				myspline.ControlPoints.insert(nindex, (mpos[0],mpos[1]))
