@@ -1,3 +1,4 @@
+from typing import List, Tuple
 
 #original author - Ian Mallett
 #graciously allowed the use of this code ( - Kochanek-Bartels Spline - 1.0.0 - May 2008) under the GPL
@@ -42,15 +43,16 @@ class Spline():
 		ControlPoints = [self.ControlPoints[-1]] + self.ControlPoints + self.ControlPoints[0:2]
 
 		# calculate points
-		tans, tand = Spline._calc_tangents(ControlPoints, self.c, self.b, self.t)
-		subpoints = Spline._interpolate(ControlPoints, tans, tand)
+		subpoints = Spline.interpolate_kochanek_bartel(ControlPoints, self.t, self.c, self.b)
 
 		# round float values to int for screen pixel values
 		self.subpoints = [(int(round(x)), int(round(y))) for (x, y) in subpoints]
 		return self.subpoints
 
 	@staticmethod
-	def _calc_tangents(control_points, c, b, t):
+	def _calc_tangents(control_points: List[Tuple[float, float]], t: float, c: float, b: float)\
+		-> Tuple[List[Tuple[float, float]], List[Tuple[float, float]]]:
+
 		tans = []
 		tand = []
 
@@ -77,7 +79,21 @@ class Spline():
 		return tans, tand
 
 	@staticmethod
-	def _interpolate(control_points, tans, tand, t_inc=0.2):
+	def interpolate_kochanek_bartel(
+			control_points: List[Tuple[float, float]], t: float, c: float, b: float, t_inc: float = 0.2)\
+		-> List[Tuple[float, float]]:
+		"""
+		Interpolates Kochanek-Bartels spline.
+		:param control_points:
+		:param t: tension
+		:param c: continuity
+		:param b: bias
+		:param t_inc: max length between interpolated points
+		:return:
+		"""
+
+		tans, tand = Spline._calc_tangents(control_points, t, c, b)
+
 		final_lines = []
 
 		for i in range(1, len(control_points) - 2):
@@ -86,14 +102,18 @@ class Spline():
 			m0 = tand[i-1]
 			m1 = tans[i]
 
-			# draw curve from p0 to p1
+			# interpolate curve from p0 to p1
 			final_lines.append((p0[0], p0[1]))
 			t_iter = t_inc
 			while t_iter < 1.0:
-				h00 = 2*(t_iter**3) - 3*(t_iter**2) + 1
-				h10 = 1*(t_iter**3) - 2*(t_iter**2) + t_iter
-				h01 = -2*(t_iter**3) + 3*(t_iter**2)
-				h11 = 1*(t_iter**3) - 1*(t_iter**2)
+				t_iter_2 = t_iter ** 2
+				t_iter_3 = t_iter ** 3
+
+				h00 = 2*t_iter_3 - 3*t_iter_2 + 1
+				h10 = 1*t_iter_3 - 2*t_iter_2 + t_iter
+				h01 = -2*t_iter_3 + 3*t_iter_2
+				h11 = 1*t_iter_3 - 1*t_iter_2
+
 				px = h00*p0[0] + h10*m0[0] + h01*p1[0] + h11*m1[0]
 				py = h00*p0[1] + h10*m0[1] + h01*p1[1] + h11*m1[1]
 				#pz = h00*p0[2] + h10*m0[2] + h01*p1[2] + h11*m1[2]
@@ -104,3 +124,8 @@ class Spline():
 			final_lines.append((p1[0], p1[1]))
 
 		return final_lines
+
+	@staticmethod
+	def interpolate_catmull_rom(control_points: List[Tuple[float, float]], t_inc: float = 0.2)\
+		-> List[Tuple[float, float]]:
+		return Spline.interpolate_kochanek_bartel(control_points, 0, 0, 0, t_inc)
