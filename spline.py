@@ -39,11 +39,9 @@ class Spline():
 		return nearest, shortest
 
 	def DrawCurve(self):
-		# make into a closed loop
-		ControlPoints = [self.ControlPoints[-1]] + self.ControlPoints + self.ControlPoints[0:2]
-
 		# calculate points
-		subpoints = Spline.interpolate_kochanek_bartel(ControlPoints, self.t, self.c, self.b)
+		closed_loop = True
+		subpoints = Spline.interpolate_kochanek_bartel(self.ControlPoints, self.t, self.c, self.b, closed_loop)
 
 		# round float values to int for screen pixel values
 		self.subpoints = [(int(round(x)), int(round(y))) for (x, y) in subpoints]
@@ -80,7 +78,7 @@ class Spline():
 
 	@staticmethod
 	def interpolate_kochanek_bartel(
-			control_points: List[Tuple[float, float]], t: float, c: float, b: float, t_inc: float = 0.2)\
+			control_points: List[Tuple[float, float]], t: float, c: float, b: float, t_inc: float = 0.2, closed: bool = True)\
 		-> List[Tuple[float, float]]:
 		"""
 		Interpolates Kochanek-Bartels spline.
@@ -89,14 +87,26 @@ class Spline():
 		:param c: continuity
 		:param b: bias
 		:param t_inc: max length between interpolated points
+		:param closed: closed circle or line
 		:return:
 		"""
 
+		if closed:
+			control_points = [control_points[-1]] + control_points + [control_points[0]]
+		else:
+			control_points = [control_points[0]] + control_points + [control_points[-1]]
+
 		tans, tand = Spline._calc_tangents(control_points, t, c, b)
 
-		final_lines = []
+		if closed:
+			control_points.append(control_points[2])
+			tans.append(tans[0])
+			tand.append(tand[0])
 
+		final_lines = []
 		for i in range(1, len(control_points) - 2):
+			print("i", i)
+
 			p0 = control_points[i]
 			p1 = control_points[i + 1]
 			m0 = tand[i-1]
