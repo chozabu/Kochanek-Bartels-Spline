@@ -78,7 +78,7 @@ class Spline():
 
 	@staticmethod
 	def interpolate_kochanek_bartel(
-			control_points: List[Tuple[float, float]], t: float, c: float, b: float, t_inc: float = 0.2, closed: bool = True)\
+			control_points: List[Tuple[float, float]], t: float, c: float, b: float, closed: bool = True, t_inc: float = 0.2)\
 		-> List[Tuple[float, float]]:
 		"""
 		Interpolates Kochanek-Bartels spline.
@@ -105,8 +105,6 @@ class Spline():
 
 		final_lines = []
 		for i in range(1, len(control_points) - 2):
-			print("i", i)
-
 			p0 = control_points[i]
 			p1 = control_points[i + 1]
 			m0 = tand[i-1]
