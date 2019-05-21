@@ -1,3 +1,4 @@
+from typing import List, Tuple
 
 #original author - Ian Mallett
 #graciously allowed the use of this code ( - Kochanek-Bartels Spline - 1.0.0 - May 2008) under the GPL
@@ -36,131 +37,128 @@ class Spline():
 				shortest = td
 				nearest = cp
 		return nearest, shortest
-			
 
 	def DrawCurve(self):
+		# calculate points
+		closed_loop = True
+		subpoints = Spline.interpolate(self.ControlPoints, self.t, self.c, self.b, closed_loop)
 
-		c=self.c
-		b=self.b
-		t=self.t
-		ControlPoints = self.ControlPoints
-		
-		#make into a closed loo[
-		ControlPoints=[ControlPoints[-1]]+ControlPoints+ControlPoints[0:2]
-		#print ControlPoints
+		# round float values to int for screen pixel values
+		self.subpoints = [(int(round(x)), int(round(y))) for (x, y) in subpoints]
+		return self.subpoints
+
+	@staticmethod
+	def _calc_tangents_kochanek_bartel(control_points: List[Tuple[float, float]], t: float, c: float, b: float)\
+		-> Tuple[List[Tuple[float, float]], List[Tuple[float, float]]]:
+		"""
+		Tangents for Kochanek Bartel spline. Equal to Catmull Rom spline, if all parameters(t,c,b) are 0.
+		:param control_points:
+		:param t: tension
+		:param c: continuity
+		:param b: bias
+		:return:
+		"""
+
 		tans = []
-
 		tand = []
 
-		for x in xrange(len(ControlPoints)-2):
+		cona = (1 - t) * (1 + b) * (1 - c) * 0.5
+		conb = (1 - t) * (1 - b) * (1 + c) * 0.5
+		conc = (1 - t) * (1 + b) * (1 + c) * 0.5
+		cond = (1 - t) * (1 - b) * (1 - c) * 0.5
 
-			tans.append([])
-
-			tand.append([])
-
-
-
-		cona = (1-t)*(1+b)*(1-c)*0.5
-
-		conb = (1-t)*(1-b)*(1+c)*0.5
-
-		conc = (1-t)*(1+b)*(1+c)*0.5
-
-		cond = (1-t)*(1-b)*(1-c)*0.5
-
-
-
-		i = 1
-
-		while i < len(ControlPoints)-1:
-
-			pa = ControlPoints[i-1]
-
-			pb = ControlPoints[i]
-
-			pc = ControlPoints[i+1]
-
-					
+		for i in range(1, len(control_points) - 1):
+			pa = control_points[i - 1]
+			pb = control_points[i]
+			pc = control_points[i + 1]
 
 			x1 = pb[0] - pa[0]
-
 			y1 = pb[1] - pa[1]
-
-			#z1 = pb[2] - pa[2]
-
+			# z1 = pb[2] - pa[2]
 			x2 = pc[0] - pb[0]
-
 			y2 = pc[1] - pb[1]
+			# z2 = pc[2] - pb[2]
 
-			#z2 = pc[2] - pb[2]
+			tans.append((cona * x1 + conb * x2, cona * y1 + conb * y2))  # cona*z1+conb*z2
+			tand.append((conc * x1 + cond * x2, conc * y1 + cond * y2))  # conc*z1+cond*z2
 
-					
+		return tans, tand
 
-			tans[i-1] = (cona*x1+conb*x2, cona*y1+conb*y2) #cona*z1+conb*z2
+	@staticmethod
+	def _calc_tangents_catmull_rom(control_points: List[Tuple[float, float]]) \
+		-> List[Tuple[float, float]]:
 
-			tand[i-1] = (conc*x1+cond*x2, conc*y1+cond*y2) #conc*z1+cond*z2
+		tans = []
+		for i in range(1, len(control_points) - 1):
+			pa = control_points[i - 1]
+			pb = control_points[i]
+			pc = control_points[i + 1]
 
-			
+			x1 = pb[0] - pa[0]
+			y1 = pb[1] - pa[1]
+			# z1 = pb[2] - pa[2]
+			x2 = pc[0] - pb[0]
+			y2 = pc[1] - pb[1]
+			# z2 = pc[2] - pb[2]
 
-			i += 1
+			tans.append((0.5 * (x1 + x2), 0.5 * (y1 + y2)))  # 0.5 * (z1 + z2)
 
+		return tans
 
+	@staticmethod
+	def interpolate(
+			control_points: List[Tuple[float, float]], t: float, c: float, b: float, closed: bool = True, t_inc: float = 0.2)\
+		-> List[Tuple[float, float]]:
+		"""
+		Interpolates Kochanek-Bartels spline.
+		:param control_points:
+		:param t: tension
+		:param c: continuity
+		:param b: bias
+		:param t_inc: max length between interpolated points
+		:param closed: closed circle or line
+		:return:
+		"""
 
-		#render spline (Your camera part)
+		if closed:
+			control_points = [control_points[-1]] + control_points + [control_points[0]]
+		else:
+			control_points = [control_points[0]] + control_points + [control_points[-1]]
 
-		t_inc = 0.2
+		tans, tand = Spline._calc_tangents_kochanek_bartel(control_points, t, c, b)
+		# tans = tand = Spline._calc_tangents_catmull_rom(control_points)
 
-		i = 1
-		
-		finalLines = []
+		if closed:
+			control_points.append(control_points[2])
+			tans.append(tans[0])
+			tand.append(tand[0])
 
-		while i < len(ControlPoints)-2:
-
-			p0 = ControlPoints[i]
-
-			p1 = ControlPoints[i+1]
-
+		final_lines = []
+		for i in range(1, len(control_points) - 2):
+			p0 = control_points[i]
+			p1 = control_points[i + 1]
 			m0 = tand[i-1]
-
 			m1 = tans[i]
 
-			#draw curve from p0 to p1
-
-			Lines = [(p0[0],p0[1])]
-
+			# interpolate curve from p0 to p1
+			final_lines.append((p0[0], p0[1]))
 			t_iter = t_inc
-
 			while t_iter < 1.0:
+				t_iter_2 = t_iter ** 2
+				t_iter_3 = t_iter ** 3
 
-				h00 = ( 2*(t_iter**3)) - ( 3*(t_iter**2)) + 1
-
-				h10 = ( 1*(t_iter**3)) - ( 2*(t_iter**2)) + t_iter
-
-				h01 = (-2*(t_iter**3)) + ( 3*(t_iter**2))
-
-				h11 = ( 1*(t_iter**3)) - ( 1*(t_iter**2))
+				h00 = 2*t_iter_3 - 3*t_iter_2 + 1
+				h10 = 1*t_iter_3 - 2*t_iter_2 + t_iter
+				h01 = -2*t_iter_3 + 3*t_iter_2
+				h11 = 1*t_iter_3 - 1*t_iter_2
 
 				px = h00*p0[0] + h10*m0[0] + h01*p1[0] + h11*m1[0]
-
 				py = h00*p0[1] + h10*m0[1] + h01*p1[1] + h11*m1[1]
-
 				#pz = h00*p0[2] + h10*m0[2] + h01*p1[2] + h11*m1[2]
 
-				Lines.append((px,py))
-
+				final_lines.append((px, py))
 				t_iter += t_inc
 
-			Lines.append((p1[0],p1[1]))
+			final_lines.append((p1[0], p1[1]))
 
-			Lines2 = []
-
-			for p in Lines:
-
-				Lines2.append((int(round(p[0])),int(round(p[1]))))
-
-			#pygame.draw.aalines(Surface,(255,255,255),False,Lines2)
-			finalLines.extend(Lines2)
-
-			i += 1
-		self.subpoints = finalLines
-		return finalLines
+		return final_lines
