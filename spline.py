@@ -41,15 +41,23 @@ class Spline():
 	def DrawCurve(self):
 		# calculate points
 		closed_loop = True
-		subpoints = Spline.interpolate_kochanek_bartel(self.ControlPoints, self.t, self.c, self.b, closed_loop)
+		subpoints = Spline.interpolate(self.ControlPoints, self.t, self.c, self.b, closed_loop)
 
 		# round float values to int for screen pixel values
 		self.subpoints = [(int(round(x)), int(round(y))) for (x, y) in subpoints]
 		return self.subpoints
 
 	@staticmethod
-	def _calc_tangents(control_points: List[Tuple[float, float]], t: float, c: float, b: float)\
+	def _calc_tangents_kochanek_bartel(control_points: List[Tuple[float, float]], t: float, c: float, b: float)\
 		-> Tuple[List[Tuple[float, float]], List[Tuple[float, float]]]:
+		"""
+		Tangents for Kochanek Bartel spline. Equal to Catmull Rom spline, if all parameters(t,c,b) are 0.
+		:param control_points:
+		:param t: tension
+		:param c: continuity
+		:param b: bias
+		:return:
+		"""
 
 		tans = []
 		tand = []
@@ -77,7 +85,28 @@ class Spline():
 		return tans, tand
 
 	@staticmethod
-	def interpolate_kochanek_bartel(
+	def _calc_tangents_catmull_rom(control_points: List[Tuple[float, float]]) \
+		-> List[Tuple[float, float]]:
+
+		tans = []
+		for i in range(1, len(control_points) - 1):
+			pa = control_points[i - 1]
+			pb = control_points[i]
+			pc = control_points[i + 1]
+
+			x1 = pb[0] - pa[0]
+			y1 = pb[1] - pa[1]
+			# z1 = pb[2] - pa[2]
+			x2 = pc[0] - pb[0]
+			y2 = pc[1] - pb[1]
+			# z2 = pc[2] - pb[2]
+
+			tans.append((0.5 * (x1 + x2), 0.5 * (y1 + y2)))  # 0.5 * (z1 + z2)
+
+		return tans
+
+	@staticmethod
+	def interpolate(
 			control_points: List[Tuple[float, float]], t: float, c: float, b: float, closed: bool = True, t_inc: float = 0.2)\
 		-> List[Tuple[float, float]]:
 		"""
@@ -96,7 +125,8 @@ class Spline():
 		else:
 			control_points = [control_points[0]] + control_points + [control_points[-1]]
 
-		tans, tand = Spline._calc_tangents(control_points, t, c, b)
+		tans, tand = Spline._calc_tangents_kochanek_bartel(control_points, t, c, b)
+		# tans = tand = Spline._calc_tangents_catmull_rom(control_points)
 
 		if closed:
 			control_points.append(control_points[2])
@@ -132,8 +162,3 @@ class Spline():
 			final_lines.append((p1[0], p1[1]))
 
 		return final_lines
-
-	@staticmethod
-	def interpolate_catmull_rom(control_points: List[Tuple[float, float]], t_inc: float = 0.2)\
-		-> List[Tuple[float, float]]:
-		return Spline.interpolate_kochanek_bartel(control_points, 0, 0, 0, t_inc)
